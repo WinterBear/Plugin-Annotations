@@ -1,0 +1,7 @@
+.idea/libraries/*
+.idea/workspace.xml
+*/libs/*.jar
+.idea/*
+*/target/*
+*.ipr
+*.iws
