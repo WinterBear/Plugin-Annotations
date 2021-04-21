@@ -7,7 +7,7 @@
 
     <groupId>io.github.winterbear.wintercore</groupId>
     <artifactId>plugin-annotations</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.5</version>
 
     <build>
         <plugins>
@@ -40,6 +40,14 @@
             </plugin>
         </plugins>
     </build>
+
+    <distributionManagement>
+        <repository>
+            <id>mammoth</id>
+            <name>Mammoth</name>
+            <url>https://mammoth.snowcave.dev</url>
+        </repository>
+    </distributionManagement>
 
     <dependencies>
         <dependency>

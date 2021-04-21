@@ -10,15 +10,15 @@ import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Collections;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by WinterBear on 10/06/2019.
  */
 @SupportedAnnotationTypes({
-        "io.github.winterbear.wintercore.Annotations.Command", "io.github.winterbear.wintercore.Annotations.SpigotPlugin"})
+        "io.github.winterbear.wintercore.Annotations.Command",
+        "io.github.winterbear.wintercore.Annotations.SpigotPlugin",
+        "io.github.winterbear.wintercore.Annotations.Dependency"})
 @SupportedSourceVersion(SourceVersion.RELEASE_8)
 @AutoService(Processor.class)
 public class PluginYMLProcessor extends AbstractProcessor {
@@ -36,6 +36,8 @@ public class PluginYMLProcessor extends AbstractProcessor {
             String pluginName = null;
             String pluginVersion = "";
             String pluginMain = "";
+            List<String> dependencies = new ArrayList<>();
+            List<String> softDependencies = new ArrayList<>();
             for(TypeElement annotation : annotations) {
                 if (annotation.getSimpleName().toString().contains("Command")) {
                     commands = roundEnv.getElementsAnnotatedWith(annotation);
@@ -55,6 +57,18 @@ public class PluginYMLProcessor extends AbstractProcessor {
                     }
 
 
+                } else if (annotation.getSimpleName().toString().contains("Dependency")) {
+                    Set<? extends Element> depends = roundEnv.getElementsAnnotatedWith(annotation);
+                    for (Element d : depends) {
+                        String dependency = d.getAnnotation(Dependency.class).name();
+                        if(d.getAnnotation(Dependency.class).type() == DependencyType.SOFT){
+                            softDependencies.add(dependency);
+                        } else {
+                            dependencies.add(dependency);
+                        }
+                        System.out.println("Dependency Detected: " + dependency);
+                    }
+
                 } else {
                     System.out.println("ERROR: UNKNOWN ANNOTATION - " + annotation.getQualifiedName());
                 }
@@ -65,7 +79,13 @@ public class PluginYMLProcessor extends AbstractProcessor {
                     out.println("name: " + pluginName);
                     out.println("main: " + pluginMain);
                     out.println("version: " + pluginVersion);
-                    out.println("api-version: 1.13");
+                    out.println("api-version: 1.16");
+                    if(!dependencies.isEmpty()){
+                        out.println("depend: [" + String.join(", ", dependencies) + "]");
+                    }
+                    if(!softDependencies.isEmpty()){
+                        out.println("softdepend: [" + String.join(", ", softDependencies) + "]");
+                    }
                     out.println("commands: ");
                     commands.stream().forEach(c -> printCommand(c, out));
                 }
@@ -80,7 +100,7 @@ public class PluginYMLProcessor extends AbstractProcessor {
 
 
     public void printCommand(Element command, PrintWriter out){
-        String commandParsed = command.toString().replace("()", "");
+        String commandParsed = command.getSimpleName().toString().replace("()", "");
         out.println("  " + commandParsed + ":");
         String aliases = command.getAnnotation(Command.class).aliases();
         String description = command.getAnnotation(Command.class).description();
